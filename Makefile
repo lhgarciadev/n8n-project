@@ -1,5 +1,5 @@
-.PHONY: help setup up down stop start restart logs inspect ip clean
-
+# Usar .PHONY para declarar objetivos que no son archivos.
+.PHONY: help setup up down stop start restart recreate logs inspect ip clean
 # Makefile for n8n project
 
 # Variables
@@ -16,13 +16,14 @@ help:
 	@echo ""
 	@echo "Commands:"
 	@echo "  help\t\tShow this help message"
-	@echo "  setup\t\tCreate local-files directory and .env file"
-	@echo "  up\t\tStart services"
-	@echo "  down\t\tStop services and remove volumes"
-	@echo "  stop\t\tStop services"
-	@echo "  start\t\tStart services"
-	@echo "  restart\tRestart services"
-	@echo "  logs\t\tView logs"
+	@echo "  setup\t\tPrepara el entorno (crea el directorio local-files y el archivo .env)"
+	@echo "  up\t\tInicia los servicios en segundo plano"
+	@echo "  down\t\tDetiene los servicios y elimina los volúmenes"
+	@echo "  stop\t\tDetiene los servicios sin eliminar los contenedores"
+	@echo "  start\t\tInicia los servicios previamente detenidos"
+	@echo "  restart\tReinicia los servicios"
+	@echo "  recreate\tRecrea los servicios (útil para aplicar cambios de configuración)"
+	@echo "  logs\t\tMuestra los logs del contenedor de n8n"
 	@echo "  inspect\tInspect the container"
 	@echo "  ip\t\tShow container IP and port"
 	@echo "  clean\t\tClean up all generated files"
@@ -39,11 +40,8 @@ setup:
 
 # Start services
 up: setup
-	@if [ ! -f $(ENV_FILE) ]; then \
-		echo "WARNING: .env file does not exist! 'example.env' copied to '.env'. Please update the configurations in the .env file before running this target."; \
-		exit 1; \
-	fi
-	docker-compose up -d
+	@echo "Starting services..."
+	@docker-compose up -d
 
 # Stop services and remove volumes
 down:
@@ -59,22 +57,26 @@ start:
 
 # Restart services
 restart:
+	@echo "Restarting services..."
+	@docker-compose restart
+
+# Recreate services (down and up)
+recreate:
+	@echo "Recreating services..."
 	docker-compose down -v
-	sleep 5
 	docker-compose up -d
 
 # View logs
 logs:
 	docker-compose logs -f $(DOCKER_CONTAINER)
-
 # Inspect the container
 inspect:
-	docker inspect $(DOCKER_CONTAINER) | grep "Source"
+	@docker inspect $$(docker-compose ps -q $(DOCKER_CONTAINER)) | grep "Source"
 
 # Show container IP and port
 ip:
-	@if [[ "$$(docker ps -q -f name=${DOCKER_CONTAINER})" ]]; then \
-		echo "Container ${DOCKER_CONTAINER} running! Forwarding connections from $$(docker port ${DOCKER_CONTAINER})"; \
+	@if [ -n "$$(docker-compose ps -q $(DOCKER_CONTAINER))" ]; then \
+		echo "n8n is accessible at http://localhost:5678 (forwarded from $$(docker-compose port $(DOCKER_CONTAINER) 5678))"; \
 	else \
 		echo "Container not running. Please start the container and try again."; \
 	fi
