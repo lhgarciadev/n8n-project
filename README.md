@@ -1,6 +1,6 @@
 # n8n-project
 
-Este proyecto proporciona una configuración lista para usar para desplegar una instancia de n8n junto con una base de datos PostgreSQL, utilizando Docker y Docker Compose. La gestión del ciclo de vida del entorno está completamente automatizada a través de un `Makefile`.
+Este proyecto proporciona una configuración lista para usar y desplegar una instancia de n8n junto con una base de datos PostgreSQL, utilizando Docker y Docker Compose. La gestión del ciclo de vida del entorno está completamente automatizada a través de un `Makefile`.
 
 ## Opciones de Despliegue
 
